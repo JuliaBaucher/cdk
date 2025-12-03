@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AskMe - VSP & VESPER Forecasting Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #F5F5F5;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 65px;
+            background-color: #FAFAFA;
+            border-bottom: 1px solid #E0E0E0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+
+    <!--    .header-logo {
+            height: 40px;      /* controls how tall the logo is */
+            width: auto;       /* keep aspect ratio */
+            object-fit: contain;
+            margin-right: 10px; /* small spacing before the text */
+        } -->
+
+        .header-logo {
+            height: 80px;   /* twice as big as before */
+            width: auto;
+            object-fit: contain;
+            margin-right: 10px;
+        }
+
+        .header {
+            height: 90px;   /* increased header height so logo fits comfortably */
+            padding: 0 30px;
+        }
+
+        .header-right {
+            color: #232F3E;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        /* Intro Section */
+        .intro-section {
+            margin-top: 90px; /* match the actual header height so it no longer overlaps */
+            background-color: #FFFFFF;
+            padding: 20px 30px;
+            border-bottom: 2px solid #FF9900;
+            z-index: 1;
+        }
+
+        .intro-title {
+            font-size: 24px;
+            color: #232F3E;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .intro-subtitle {
+            font-size: 14px;
+            color: #666666;
+        }
+
+        /* Chat Container */
+        .chat-container {
+            position: fixed;
+            top: 180px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            background-color: #FFFFFF;
+            max-width: 1400px;
+            margin: 0 auto;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        /* Messages Area */
+        .messages-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .message {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            max-width: 75%;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .message.bot {
+            align-self: flex-start;
+        }
+
+        .message-bubble {
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 16px;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-bubble {
+            background-color: #F1F1F1;
+            color: #333333;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.bot .message-bubble {
+            background-color: #E3F2FD;
+            color: #333333;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: #999999;
+            margin-top: 4px;
+        }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 12px;
+            max-width: 75%;
+        }
+
+        .typing-indicator.active {
+            display: flex;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+            padding: 12px 16px;
+            background-color: #E3F2FD;
+            border-radius: 12px;
+            border-bottom-left-radius: 4px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #666666;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% { opacity: 0.3; }
+            30% { opacity: 1; }
+        }
+
+        /* Input Area */
+        .input-area {
+            border-top: 1px solid #E0E0E0;
+            padding: 20px 30px;
+            background-color: #FAFAFA;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            display: flex;
+            gap: 12px;
+        }
+
+        #message-input {
+            flex: 1;
+            padding: 14px 18px;
+            border: 2px solid #E0E0E0;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: Arial, Helvetica, sans-serif;
+            transition: border-color 0.2s;
+        }
+
+        #message-input:focus {
+            outline: none;
+            border-color: #FF9900;
+        }
+
+        #message-input:disabled {
+            background-color: #F5F5F5;
+            cursor: not-allowed;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 100px;
+        }
+
+        .btn-send {
+            background-color: #FF9900;
+            color: #FFFFFF;
+        }
+
+        .btn-send:hover:not(:disabled) {
+            background-color: #E68A00;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(255, 153, 0, 0.3);
+        }
+
+        .btn-send:disabled {
+            background-color: #CCCCCC;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-clear {
+            background-color: #232F3E;
+            color: #FFFFFF;
+        }
+
+        .btn-clear:hover {
+            background-color: #1A2332;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(35, 47, 62, 0.3);
+        }
+
+        /* Error Message */
+        .error-message {
+            display: none;
+            padding: 12px 16px;
+            background-color: #FFEBEE;
+            color: #C62828;
+            border-left: 4px solid #C62828;
+            border-radius: 4px;
+            margin: 10px 30px;
+            font-size: 14px;
+        }
+
+        .error-message.show {
+            display: block;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        /* Welcome Message */
+        .welcome-message {
+            text-align: center;
+            color: #666666;
+            padding: 40px 20px;
+            font-size: 16px;
+        }
+
+        .welcome-message h3 {
+            color: #232F3E;
+            margin-bottom: 12px;
+            font-size: 20px;
+        }
+
+        /* Scrollbar Styling */
+        .messages-area::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .messages-area::-webkit-scrollbar-track {
+            background: #F5F5F5;
+        }
+
+        .messages-area::-webkit-scrollbar-thumb {
+            background: #CCCCCC;
+            border-radius: 4px;
+        }
+
+        .messages-area::-webkit-scrollbar-thumb:hover {
+            background: #999999;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) 
+        {
+            .header {
+                padding: 0 15px;
+            }
+
+            .header-right {
+                font-size: 12px;
+            }
+
+            .intro-section {
+                padding: 15px;
+            }
+
+            .intro-title {
+                font-size: 20px;
+            }
+
+            .chat-container {
+                top: 140px;
+            }
+
+            .message {
+                max-width: 90%;
+            }
+
+            .messages-area {
+                padding: 15px;
+            }
+
+            .input-area {
+                padding: 15px;
+                flex-direction: column;
+            }
+
+            .input-wrapper {
+                width: 100%;
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .header-logo {
+                height: 45px;    /* auto-scale down for phones */
+            }
+
+            .header {
+                height: 70px;    /* match reduced logo */
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <img src="amazon-logo.png" class="header-logo" alt="AskMe logo" />
+        </div>
+        <div class="header-right">
+            AskMe - AI assistant to explain the VSP and Vesper forecasting models
+        </div>
+    </header>
+
+    <!-- Intro Section -->
+    <section class="intro-section">
+        <h1 class="intro-title">Understand everything about VSP and VESPER forecasts</h1>
+        <p class="intro-subtitle">Ask me anything about how our forecasting models work</p>
+    </section>
+
+    <!-- Chat Container -->
+    <div class="chat-container">
+        <div class="messages-area" id="messages-area">
+            <div class="welcome-message">
+                <h3>Welcome to AskMe!</h3>
+                <p>I&#39;m here to help you understand VSP and VESPER forecasting models.<br>
+                Ask me about model parameters, methodology, or any technical questions you have.</p>
+            </div>
+        </div>
+
+        <!-- Typing Indicator -->
+        <div class="typing-indicator" id="typing-indicator">
+            <div class="typing-dots">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        </div>
+
+        <!-- Error Message -->
+        <div class="error-message" id="error-message"></div>
+
+        <!-- Input -->
+        <div class="input-area">
+            <div class="input-wrapper">
+                <input id="message-input" type="text"
+                       placeholder="Type your question about VSP or VESPER models..."
+                       autocomplete="off" />
+                <button class="btn btn-send" id="send-btn">Send</button>
+                <button class="btn btn-clear" id="clear-btn">Clear Chat</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+/* DOM Elements */
+const messagesArea = document.getElementById('messages-area');
+const messageInput = document.getElementById('message-input');
+const sendBtn = document.getElementById('send-btn');
+const clearBtn = document.getElementById('clear-btn');
+const typingIndicator = document.getElementById('typing-indicator');
+const errorMessage = document.getElementById('error-message');
+
+/* Optional session id (NOT sent to backend to match JuliaBaucherCV schema) */
+const sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+
+messageInput.focus();
+
+/* Clear chat */
+clearBtn.addEventListener('click', () => {
+    if (confirm('Are you sure you want to clear the chat history?')) {
+        messagesArea.innerHTML = `
+            <div class="welcome-message">
+                <h3>Welcome to AskMe!</h3>
+                <p>I am here to help you understand VSP and VESPER forecasting models.<br>
+                Ask me about model parameters, methodology, or any technical questions you have.</p>
+            </div>`;
+        hideError();
+    }
+});
+
+/* Extract bot reply — robust */
+function extractResponse(data) {
+    console.log('Raw data:', data);
+
+    if (typeof data.reply === 'string') return data.reply;
+    if (typeof data.response === 'string') return data.response;
+    if (typeof data.message === 'string') return data.message;
+
+    /* Lambda envelope wrapper */
+    if (data.body) {
+        try {
+            const parsed = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
+            return extractResponse(parsed);
+        } catch (e) { /* ignore JSON parse error */ }
+    }
+
+    return null;
+}
+
+/* Send message */
+async function sendMessage() {
+    const text = messageInput.value.trim();
+    if (!text) return;
+
+    addMessage(text, 'user');
+    messageInput.value = '';
+    messageInput.disabled = true;
+    sendBtn.disabled = true;
+
+    typingIndicator.classList.add('active');
+
+    try {
+        /* IMPORTANT: match JuliaBaucherCV backend schema: only { message } */
+        const res = await fetch('https://pfsw63h3ra.execute-api.eu-central-1.amazonaws.com/prod/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: text })
+        });
+
+        const data = await res.json();
+        console.log('HTTP status:', res.status);
+        console.log('Parsed JSON:', data);
+
+        typingIndicator.classList.remove('active');
+
+        if (!res.ok) {
+            throw new Error(data.error || `Error ${res.status}`);
+        }
+
+        let reply = extractResponse(data);
+        if (!reply) reply = "I received your question but couldn't generate a response.";
+
+        addMessage(reply, 'bot');
+    }
+    catch (err) {
+        console.error(err);
+        typingIndicator.classList.remove('active');
+        showError(err.message);
+    }
+    finally {
+        messageInput.disabled = false;
+        sendBtn.disabled = false;
+        messageInput.focus();
+    }
+}
+
+/* UI helpers */
+function addMessage(text, who) {
+    const div = document.createElement('div');
+    div.className = `message ${who}`;
+    div.innerHTML = `<div class="message-bubble">${text}</div>`;
+    messagesArea.appendChild(div);
+    messagesArea.scrollTop = messagesArea.scrollHeight;
+}
+
+function showError(msg) {
+    errorMessage.textContent = msg;
+    errorMessage.classList.add('show');
+    setTimeout(hideError, 4500);
+}
+
+function hideError() {
+    errorMessage.classList.remove('show');
+}
+
+/* Enter to send */
+messageInput.addEventListener('keypress', e => {
+    if (e.key === 'Enter') sendMessage();
+});
+sendBtn.addEventListener('click', sendMessage);
+</script>
+</body>
+</html>
