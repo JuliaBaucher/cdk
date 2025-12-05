@@ -1,4 +1,4 @@
-# Chatbot CDK – Infrastructure README (Copy-paste Friendly TXT Format)
+# Chatbot CDK – Infrastructure README 
 
 This document explains how the Chatbot CDK infrastructure was created using AWS CDK (Python), Lambda (Node.js), Amazon Bedrock, and API Gateway HTTP API.  
 Everything is written in plain text so formatting is preserved when copying into a .txt file.
@@ -316,3 +316,4 @@ You now have:
 • Ability to add more chatbots by creating more stacks  
 
 This infrastructure is stable, scalable, and easy to extend.
+
